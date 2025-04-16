@@ -3,27 +3,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 import cv2
 
-def draw_connections(frame, keypoints, edges, confidence_threshold):
-    y, x, c = frame.shape
-    shaped = np.squeeze(np.multiply(keypoints, [y,x,1]))
-    
-    for edge, color in edges.items():
-        p1, p2 = edge
-        y1, x1, c1 = shaped[p1]
-        y2, x2, c2 = shaped[p2]
-        
-        if (c1 > confidence_threshold) & (c2 > confidence_threshold):      
-            cv2.line(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0,0,255), 2)
-
-def draw_keypoints(frame, keypoints, confidence_threshold):
-    y, x, c = frame.shape
-    shaped = np.squeeze(np.multiply(keypoints, [y,x,1]))
-    
-    for kp in shaped:
-        ky, kx, kp_conf = kp
-        if kp_conf > confidence_threshold:
-            cv2.circle(frame, (int(kx), int(ky)), 4, (0,255,0), -1) 
-
+#  [0,    1,        2,         3,        4,         5,             6,              7,          8,           9,         10,          11,       12,        13,        14,         15,         16]
+#  [nose, left eye, right eye, left ear, right ear, left shoulder, right shoulder, left elbow, right elbow, left wrist,right wrist, left hip, right hip, left knee, right knee, left ankle, right ankle]
 EDGES = {
     (0, 1): 'm',
     (0, 2): 'c',
@@ -44,6 +25,37 @@ EDGES = {
     (12, 14): 'c',
     (14, 16): 'c'
 }
+
+# Define a mapping for color codes to RGB values
+COLOR_MAP = {
+    'm': (255, 0, 255),  # Magenta
+    'c': (0, 255, 255),  # Cyan
+    'y': (255, 255, 0)   # Yellow
+}
+
+def draw_connections(frame, keypoints, edges, confidence_threshold):
+    y, x, c = frame.shape
+    shaped = np.squeeze(np.multiply(keypoints, [y,x,1]))
+    
+    for edge, color_code in edges.items():
+        p1, p2 = edge
+        y1, x1, c1 = shaped[p1]
+        y2, x2, c2 = shaped[p2]
+        
+        if (c1 > confidence_threshold) & (c2 > confidence_threshold): 
+            # Use the RGB color from the COLOR_MAP
+            color = COLOR_MAP[color_code]     
+            cv2.line(frame, (int(x1), int(y1)), (int(x2), int(y2)), color, 2)
+
+def draw_keypoints(frame, keypoints, confidence_threshold):
+    y, x, c = frame.shape
+    shaped = np.squeeze(np.multiply(keypoints, [y,x,1]))
+    
+    for kp in shaped:
+        ky, kx, kp_conf = kp
+        if kp_conf > confidence_threshold:
+            cv2.circle(frame, (int(kx), int(ky)), 4, (0,255,0), -1) 
+
 
 interpreter = tf.lite.Interpreter(model_path="3.tflite")
 interpreter.allocate_tensors()
